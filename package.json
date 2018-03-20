@@ -18,7 +18,9 @@
   "homepage": "https://github.com/neohung/hero_test#readme",
   "dependencies": {
     "crypto": "^1.0.1",
+    "express": "^4.16.3",
     "http": "0.0.0",
-    "lodash": "^4.17.5"
+    "lodash": "^4.17.5",
+    "path": "^0.12.7"
   }
 }
