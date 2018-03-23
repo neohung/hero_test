@@ -114,8 +114,8 @@
      ws.onmessage = function (event) {
 	   if (!iscreate){
 	   outputmsg("ABCDERF")
+	    iscreate = 1
 	   createChart()
-	   iscreate = 1
 	   }
       //  li.innerHTML = JSON.parse(event.data);
       //  document.querySelector('#pings').appendChild(li);
