@@ -1,8 +1,136 @@
 <html>
   <head>
+   <meta charset="UTF-8" />
+   <title>標題</title>
+   <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+   <script type="text/javascript" src="http://code.highcharts.com/highcharts.js"></script>
+   <script>
+     function outputmsg(msg){
+       //document.getElementById("message").innerHTML="TEST";
+	   var li = document.createElement('li');
+	   li.innerHTML = msg
+	   document.querySelector('#message').appendChild(li);
+     }
+     function btn(){
+       var host = location.origin.replace(/^http/, 'ws')
+       outputmsg(host)
+     }
+     var host = location.origin.replace(/^http/, 'ws')
+     var ws = new WebSocket(host);
+	 
+     ws.onmessage = function (event) {
+      //  li.innerHTML = JSON.parse(event.data);
+      //  document.querySelector('#pings').appendChild(li);
+	  msg = event.data
+	  outputmsg(msg)
+     };
+    </script>
+	<script>
+    $(function () {
+      function outputmsg(msg){
+       //document.getElementById("message").innerHTML="TEST";
+	   var li = document.createElement('li');
+	   li.innerHTML = msg
+	   document.querySelector('#message').appendChild(li);
+      }
+    //=========================================
+      var chart = {
+        type: 'line',
+		events: {
+		  click: function (e) {
+           var x = e.xAxis[0].value;
+           var y = e.yAxis[0].value;
+           //outputmsg("clicked")
+          },
+		  load: function () {
+            var series1 = this.series[0];
+			var series2 = this.series[1];
+            //var first_time = (new Date()).getTime()
+			setInterval(function () {
+               var x = (new Date()).getTime();
+               var y = Math.random();
+			   series1.addPoint([x, y], true, true);
+			   y = Math.random();
+			   series2.addPoint([x, y], true, true);				 
+            }, 1000);
+		  }
+        }
+	  };
+      var title = {
+        text: '標題'   
+      };   
+      var xAxis = {
+        type: 'datetime',
+	    title: {
+         text: 'X軸'
+        },
+        tickPixelInterval: 150
+      };
+      var yAxis = {
+        title: {
+         text: 'Y軸'
+        },
+        plotLines: [{
+         value: 0,
+         width: 1,
+         color: '#808080'
+        }]
+      };
+   
+      var series= [
+        {
+          name: '序列1',
+          data: (function () {
+                   var data = [];
+		           var time = (new Date()).getTime();
+		           var i;
+                   for (i = -19; i <= 0; i += 1) {
+                     data.push({
+                       x: time + i * 1000,
+                       y: 0//Math.random()
+                     });
+                   }
+                  return data;
+                }())    
+        },
+	    {
+          name: '序列2',
+          data: (function () {
+                   var data = [];
+		           var time = (new Date()).getTime();
+		           var i;
+                   for (i = -19; i <= 0; i += 1) {
+                     data.push({
+                       x: time + i * 1000,
+                       y: 0//Math.random()
+                     });
+                   }
+                  return data;
+                }())    
+ 	    }
+      ];     
+      
+     var json = {};   
+     json.chart = chart; 
+     json.title = title;     
+     json.xAxis = xAxis;
+     json.yAxis = yAxis; 
+     json.series = series;
+     Highcharts.setOptions({
+      global: {
+         useUTC: false
+      }
+     });
+     $('#neochart').highcharts(json);
+    //=========================================
+    });
+</script>
+	
   </head>
   <body>
-    <h1>Pings</h1>
-    <ul id='pings'></ul>
+    <div id="neochart" style="width: 750px; height: 400px; margin: 0 auto"></div>
+    <input type="button" value="BTN" onclick="btn()">
+    <h1>Messages</h1>
+    <ul id='message'></ul>
   </body>
 </html>
