@@ -15,10 +15,108 @@
        var host = location.origin.replace(/^http/, 'ws')
        outputmsg(host)
      }
+	 //
+	 function createChart(){
+	    var chart = {
+        type: 'line',
+		events: {
+		  click: function (e) {
+           var x = e.xAxis[0].value;
+           var y = e.yAxis[0].value;
+           //outputmsg("clicked")
+          },
+		  load: function () {
+            var series1 = this.series[0];
+			var series2 = this.series[1];
+            //var first_time = (new Date()).getTime()
+			setInterval(function () {
+               var x = (new Date()).getTime();
+               var y = Math.random();
+			   series1.addPoint([x, y], true, true);
+			   y = Math.random();
+			   series2.addPoint([x, y], true, true);				 
+            }, 1000);
+		  }
+        }
+	  };
+      var title = {
+        text: '標題'   
+      };   
+      var xAxis = {
+        type: 'datetime',
+	    title: {
+         text: 'X軸'
+        },
+        tickPixelInterval: 150
+      };
+      var yAxis = {
+        title: {
+         text: 'Y軸'
+        },
+        plotLines: [{
+         value: 0,
+         width: 1,
+         color: '#808080'
+        }]
+      };
+   
+      var series= [
+        {
+          name: '序列1',
+          data: (function () {
+                   var data = [];
+		           var time = (new Date()).getTime();
+		           var i;
+                   for (i = -19; i <= 0; i += 1) {
+                     data.push({
+                       x: time + i * 1000,
+                       y: 0//Math.random()
+                     });
+                   }
+                  return data;
+                }())    
+        },
+	    {
+          name: '序列2',
+          data: (function () {
+                   var data = [];
+		           var time = (new Date()).getTime();
+		           var i;
+                   for (i = -19; i <= 0; i += 1) {
+                     data.push({
+                       x: time + i * 1000,
+                       y: 0//Math.random()
+                     });
+                   }
+                  return data;
+                }())    
+ 	    }
+      ];     
+      
+     var json = {};   
+     json.chart = chart; 
+     json.title = title;     
+     json.xAxis = xAxis;
+     json.yAxis = yAxis; 
+     json.series = series;
+     Highcharts.setOptions({
+      global: {
+         useUTC: false
+      }
+     });
+     $('#neochart').highcharts(json);
+   
+	 } 
+	 //
      var host = location.origin.replace(/^http/, 'ws')
-     //var ws = new WebSocket(host);
-	 
-     //ws.onmessage = function (event) {
+     var ws = new WebSocket(host);
+	 var iscreate = 0;
+     ws.onmessage = function (event) {
+	   if (!iscreate){
+	   outputmsg("ABCDERF")
+	   createChart()
+	   iscreate = 1
+	   }
       //  li.innerHTML = JSON.parse(event.data);
       //  document.querySelector('#pings').appendChild(li);
 	 // msg = event.data
