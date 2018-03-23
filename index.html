@@ -16,16 +16,22 @@
        outputmsg(host)
      }
      var host = location.origin.replace(/^http/, 'ws')
-     var ws = new WebSocket(host);
+     //var ws = new WebSocket(host);
 	 
-     ws.onmessage = function (event) {
+     //ws.onmessage = function (event) {
       //  li.innerHTML = JSON.parse(event.data);
       //  document.querySelector('#pings').appendChild(li);
-	  msg = event.data
-	  outputmsg(msg)
+	 // msg = event.data
+	 // outputmsg(msg)
      };
     </script>
 	<script>
+	$(function () {
+	   var li = document.createElement('li');
+	   li.innerHTML = "TTTT"
+	   document.querySelector('#message').appendChild(li);
+	})
+	/*
     $(function () {
       function outputmsg(msg){
        //document.getElementById("message").innerHTML="TEST";
@@ -124,6 +130,7 @@
      $('#neochart').highcharts(json);
     //=========================================
     });
+	*/
 </script>
 	
   </head>
