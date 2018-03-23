@@ -1,9 +1,27 @@
-const http = require('http');
-const PORT = process.env.PORT || 5000;
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello World\n');
-});
+var http = require("http")
+var express = require("express")
+var app = express()
+var port = process.env.PORT || 5000
 
-server.listen(PORT);
+app.use(express.static(__dirname + "/"))
+var server = http.createServer(app)
+server.listen(port)
+
+console.log("neo http server listening on %d", port)
+
+var wss = new WebSocketServer({server: server})
+console.log("websocket server created")
+
+wss.on("connection", function(ws) {
+	
+  var id = setInterval(function() {
+	console.log("websocket interval")
+    //ws.send(JSON.stringify(new Date()), function() {  })
+  }, 1000)
+
+ 
+  ws.on("close", function() {
+    console.log("websocket connection close")
+    clearInterval(id)
+  })
+})
