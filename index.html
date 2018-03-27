@@ -3,257 +3,115 @@
    <meta charset="UTF-8" />
    <title>標題</title>
    <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
-   <script type="text/javascript" src="https://code.highcharts.com/highcharts.js"></script>
    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
    <script>
-     function outputmsg(msg){
-       //document.getElementById("message").innerHTML="TEST";
-	   var li = document.createElement('li');
-	   li.innerHTML = msg
-	   document.querySelector('#message').appendChild(li);
-     }
-     function btn(){
+     $(document).ready(function() {
+       function outputmsg(msg){
+         d3.select('#message').append('ul').text(msg)
+       }
        var host = location.origin.replace(/^http/, 'ws')
-       outputmsg(host)
-     }
-	 //
-   function createChart1(){
-    outputmsg("test")
-   }
-	 function createChart(){
-	    var chart = {
-        type: 'line',
-		events: {
-		  click: function (e) {
-           var x = e.xAxis[0].value;
-           var y = e.yAxis[0].value;
-           //outputmsg("clicked")
-          },
-		  load: function () {
-            var series1 = this.series[0];
-			var series2 = this.series[1];
-            //var first_time = (new Date()).getTime()
-			setInterval(function () {
-               var x = (new Date()).getTime();
-               var y = Math.random();
-			   series1.addPoint([x, y], true, true);
-			   y = Math.random();
-			   series2.addPoint([x, y], true, true);				 
-            }, 1000);
-		  }
-        }
-	  };
-      var title = {
-        text: '標題'   
-      };   
-      var xAxis = {
-        type: 'datetime',
-	    title: {
-         text: 'X軸'
-        },
-        tickPixelInterval: 150
-      };
-      var yAxis = {
-        title: {
-         text: 'Y軸'
-        },
-        plotLines: [{
-         value: 0,
-         width: 1,
-         color: '#808080'
-        }]
-      };
-   
-      var series= [
-        {
-          name: '序列1',
-          data: (function () {
-                   var data = [];
-		           var time = (new Date()).getTime();
-		           var i;
-                   for (i = -19; i <= 0; i += 1) {
-                     data.push({
-                       x: time + i * 1000,
-                       y: 0//Math.random()
-                     });
-                   }
-                  return data;
-                }())    
-        },
-	    {
-          name: '序列2',
-          data: (function () {
-                   var data = [];
-		           var time = (new Date()).getTime();
-		           var i;
-                   for (i = -19; i <= 0; i += 1) {
-                     data.push({
-                       x: time + i * 1000,
-                       y: 0//Math.random()
-                     });
-                   }
-                  return data;
-                }())    
- 	    }
-      ];     
-      
-     var json = {};   
-     json.chart = chart; 
-     json.title = title;     
-     json.xAxis = xAxis;
-     json.yAxis = yAxis; 
-     json.series = series;
-     Highcharts.setOptions({
-      global: {
-         useUTC: false
-      }
-     });
-     $('#neochart').highcharts(json);
-   
-	 } 
-	 //
-     var host = location.origin.replace(/^http/, 'ws')
-     var ws = new WebSocket(host);
-	 var iscreate = 0;
-     ws.onmessage = function (event) {
-	   if (!iscreate){
-	   outputmsg("ABCDERF")
-	    iscreate = 1
-	   createChart()
-        var death_rate = [['越南',24.26],['阿魯巴',17.48],['關島',10.01],['澳門',5.84]];
-        //var root = d3.select("body");
-        //var span = d3.select("body").select("h3").select("span");
-        //span.text("hello world").style("font-size", "24px");
-        //var div = d3.select("body").selectAll("div");
+       var ws = new WebSocket(host);
+	   var barsvg = d3.select("body").append("svg");
+	   //建立軸
+	   barsvg.append('g').attr("id", 'yAxis');
+	   barsvg.append('g').attr("id", 'xAxis');
+	   //產生按鈕
+	   d3.select("#d3btn").append("button").text("按鈕").on("click",function(){
+	     var host = location.origin.replace(/^http/, 'ws')
+         outputmsg(host)
+	   })
+       ws.onmessage = function (event) {
+         var ran = Math.random();
+         var time = (new Date()).getTime();
+		 
+		 //outputmsg(Math.floor(Math.random(1,10)*10))
+         //隨機產生資料
+         let data_array = new Array(Math.floor(Math.random()*10+1)).fill(0);
+           //data_array = data_array.map((v, i)=>{
+		   data_array = data_array.map(function(v, i){
+		   //i=0,1,2~9
+           return({index:i, val:Math.floor(Math.random()*100+1)});
+         })
+		 //設定畫布大小
+         const height = 250;
+         const width = 300;
+         barsvg.attr(
+           'width', width,
+          ).attr(
+           'height', height,
+          ).style(
+           'border','2px solid black'
+         );
+		 //--------------------------------------------------
+		 //domain和 range，對應就是 值域=>對應域, domain表示軸值為0~20, range表示由上到下長度有200格,
+		 //var scaleY = d3.scale.linear().range([200, 0]).domain([0, d3.max(data_array, (d)=>d.val)]);
+		 var scaleY = d3.scale.linear().range([200, 0]).domain([0, 20]);
+	     var axisY = d3.svg.axis().scale(scaleY).orient("left").ticks(10);
+		 barsvg.select('#yAxis')
+	     .attr("transform","translate(30,10)")	
+	     .attr("class", "y axis")
+	     .style("fill", "steelblue")
+	     .call(axisY);
+		 //--------------------------------------------------
+		 //var scaleX = d3.scale.linear().range([0, 200]).domain([0, d3.max(data_array, (d)=>d.val)]);
+		 var scaleX = d3.scale.linear().range([0, 200]).domain([0, 200]);
+	     var axisX = d3.svg.axis().scale(scaleX).orient("bottom").ticks(10);
+		 barsvg.select('#xAxis')
+	     .attr("transform","translate(35,220)")	
+	     .attr("class", "x axis")
+	     .style("fill", "steelblue")
+		 .attr("font-family", "sans-serif")
+         .attr("font-size", "8px")
+	     .call(axisX);
+		 //--------------------------------------------------
+		 //產生BAR
+		 var bar = barsvg.selectAll("#barVal").data(data_array);
+		 bar.exit().remove(); //remove unneeded rect
+         bar.enter().append("rect"); //add new rect
+		 bar.transition().duration(500)
+		 .attr("id", 'barVal')
+         .attr('width', function(d){return d.val;})
+         .attr("height",15)
+         .attr("x", 35)
+         .attr("y", function(d){return 10+d.index*20;})
+         //.attr("fill", "#f90");
+		 .attr("fill", (d)=>{
+		   if(d.val<60){
+		     return 'red'
+		   } else {
+			 return 'green'
+		   }
+		 });
+		 //--------------------------------------------------
+		 //產生BAR TEXT
+		 var bartext = barsvg.selectAll('#barText').data(data_array);
+		 bartext.exit().remove(); //remove unneeded rect
+		 bartext.enter().append("text");
+		 bartext.transition().duration(500)
+		 .attr("id", 'barText')
+         .attr("x", function(d){return d.val+35;})
+         .attr("y", function(d){return 25+d.index*20;})
+		 .attr("fill","blue")
+         .attr("font-family", "sans-serif")
+         .attr("font-size", "20px")
+         .text(function(d){return d.val;}) 
+		 .attr("class", "valText")
+		 //tween表示補間動畫
+		 .tween("valText", function(d){
+		   let i = d3.interpolateRound(0, d.val);
+           return (t)=>{
+             //this.setAttribute("x",i(t)+10);
+             this.textContent = i(t);
+           }
+		 });
+       }
+     })
+   </script>
 
-     var div_data_bind = d3.select("body").selectAll("div").data(death_rate);
-     div_set = div_data_bind.enter().append("div"); /*為「沒有物件可配對的資料」建立標籤 */
-     div_data_bind.exit().remove(); /* 刪除「沒有資料可配對的物件」*/
-
-      
-        div_set.text(function(d,i) {
-           return i + " / " + d[0];
-        });
-	   }
-      //  li.innerHTML = JSON.parse(event.data);
-      //  document.querySelector('#pings').appendChild(li);
-	 // msg = event.data
-	 // outputmsg(msg)
-     };
-    </script>
-	<script>
-	$(document).ready(function() {
-	   var li = document.createElement('li');
-	   li.innerHTML = "TTTT"
-	   document.querySelector('#message').appendChild(li);
-	})
-	/*
-    $(function () {
-      function outputmsg(msg){
-       //document.getElementById("message").innerHTML="TEST";
-	   var li = document.createElement('li');
-	   li.innerHTML = msg
-	   document.querySelector('#message').appendChild(li);
-      }
-    //=========================================
-      var chart = {
-        type: 'line',
-		events: {
-		  click: function (e) {
-           var x = e.xAxis[0].value;
-           var y = e.yAxis[0].value;
-           //outputmsg("clicked")
-          },
-		  load: function () {
-            var series1 = this.series[0];
-			var series2 = this.series[1];
-            //var first_time = (new Date()).getTime()
-			setInterval(function () {
-               var x = (new Date()).getTime();
-               var y = Math.random();
-			   series1.addPoint([x, y], true, true);
-			   y = Math.random();
-			   series2.addPoint([x, y], true, true);				 
-            }, 1000);
-		  }
-        }
-	  };
-      var title = {
-        text: '標題'   
-      };   
-      var xAxis = {
-        type: 'datetime',
-	    title: {
-         text: 'X軸'
-        },
-        tickPixelInterval: 150
-      };
-      var yAxis = {
-        title: {
-         text: 'Y軸'
-        },
-        plotLines: [{
-         value: 0,
-         width: 1,
-         color: '#808080'
-        }]
-      };
-   
-      var series= [
-        {
-          name: '序列1',
-          data: (function () {
-                   var data = [];
-		           var time = (new Date()).getTime();
-		           var i;
-                   for (i = -19; i <= 0; i += 1) {
-                     data.push({
-                       x: time + i * 1000,
-                       y: 0//Math.random()
-                     });
-                   }
-                  return data;
-                }())    
-        },
-	    {
-          name: '序列2',
-          data: (function () {
-                   var data = [];
-		           var time = (new Date()).getTime();
-		           var i;
-                   for (i = -19; i <= 0; i += 1) {
-                     data.push({
-                       x: time + i * 1000,
-                       y: 0//Math.random()
-                     });
-                   }
-                  return data;
-                }())    
- 	    }
-      ];     
-      
-     var json = {};   
-     json.chart = chart; 
-     json.title = title;     
-     json.xAxis = xAxis;
-     json.yAxis = yAxis; 
-     json.series = series;
-     Highcharts.setOptions({
-      global: {
-         useUTC: false
-      }
-     });
-     $('#neochart').highcharts(json);
-    //=========================================
-    });
-	*/
-</script>
-	
   </head>
   <body>
     <div id="neochart" style="width: 750px; height: 400px; margin: 0 auto"></div>
-    <input type="button" value="BTN" onclick="btn()">
-    <h1>Messages</h1>
+	<div id='d3btn'></div>
     <ul id='message'></ul>
   </body>
 </html>
