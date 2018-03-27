@@ -6,9 +6,16 @@
    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
    <script>
      $(document).ready(function() {
+	   function outputmsg(msg){
+	     var li = document.createElement('li');
+	     li.innerHTML = msg;
+	     document.querySelector('#message').appendChild(li);		
+       }
+	   /*
        function outputmsg(msg){
          d3.select('#message').append('ul').text(msg)
        }
+	   */
        var host = location.origin.replace(/^http/, 'ws')
        var ws = new WebSocket(host);
 	   var barsvg = d3.select("body").append("svg");
@@ -23,8 +30,7 @@
        ws.onmessage = function (event) {
          var ran = Math.random();
          var time = (new Date()).getTime();
-		 
-		 //outputmsg(Math.floor(Math.random(1,10)*10))
+		 outputmsg("time:" + time);
          //隨機產生資料
          let data_array = new Array(Math.floor(Math.random()*10+1)).fill(0);
            //data_array = data_array.map((v, i)=>{
@@ -113,6 +119,7 @@
     DATA
     <div id="neochart" style="width: 750px; height: 400px; margin: 0 auto"></div>
 	<div id='d3btn'></div>
+	<h1>Messages</h1>
     <ul id='message'></ul>
   </body>
 </html>
