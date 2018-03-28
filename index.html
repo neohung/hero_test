@@ -11,6 +11,11 @@
 	     li.innerHTML = msg;
 	     document.querySelector('#message').appendChild(li);		
        }
+	   //產生按鈕
+	   d3.select("#d3btn").append("button").text("按鈕").on("click",function(){
+	     var host = location.origin.replace(/^http/, 'ws')
+         outputmsg(host)
+	   })
 	   /*
        function outputmsg(msg){
          d3.select('#message').append('ul').text(msg)
@@ -23,11 +28,7 @@
 	   //建立軸
 	   barsvg.append('g').attr("id", 'yAxis');
 	   barsvg.append('g').attr("id", 'xAxis');
-	   //產生按鈕
-	   d3.select("#d3btn").append("button").text("按鈕").on("click",function(){
-	     var host = location.origin.replace(/^http/, 'ws')
-         outputmsg(host)
-	   })
+	   
 	   */
        ws.onmessage = function (event) {
          var ran = Math.random();
