@@ -20,10 +20,10 @@
            outputmsg(host)
 	     })
 		 //
-		 barsvg = d3.select("body").select('#neochart').append("svg");
+		 pathsvg = d3.select("body").select('#neochart').append("svg");
 	     //建立軸
-	     barsvg.append('g').attr("id", 'yAxis');
-	     barsvg.append('g').attr("id", 'xAxis');
+	     pathsvg.append('g').attr("id", 'yAxis');
+	     pathsvg.append('g').attr("id", 'xAxis');
 	   }
       
  	   ws.onmessage = function (event) {
@@ -31,16 +31,23 @@
          var time = (new Date()).getTime();
 		 //outputmsg("time:" + time);
          //隨機產生資料
-         let data_array = new Array(Math.floor(Math.random()*10+1)).fill(0);
+         //let data_array = new Array(Math.floor(Math.random()*10+1)).fill(0);
+		 let data_array1 = new Array(10).fill(0);
            //data_array = data_array.map((v, i)=>{
-		   data_array = data_array.map(function(v, i){
+		   data_array1 = data_array1.map(function(v, i){
 		   //i=0,1,2~9
-           return({index:i, val:Math.floor(Math.random()*100+1)});
+           return({x:i, y:Math.floor(Math.random()*100+1)});
+         })
+		 let data_array2 = new Array(10).fill(0);
+           //data_array = data_array.map((v, i)=>{
+		   data_array2 = data_array2.map(function(v, i){
+		   //i=0,1,2~9
+           return({x:i, y:Math.floor(Math.random()*100+1)});
          })
 		 //設定畫布大小
          const height = 250;
          const width = 300;
-         barsvg.attr(
+         pathsvg.attr(
            'width', width,
           ).attr(
            'height', height,
@@ -50,18 +57,18 @@
 		 //--------------------------------------------------
 		 //domain和 range，對應就是 值域=>對應域, domain表示軸值為0~20, range表示由上到下長度有200格,
 		 //var scaleY = d3.scale.linear().range([200, 0]).domain([0, d3.max(data_array, (d)=>d.val)]);
-		 var scaleY = d3.scale.linear().range([200, 0]).domain([0, 20]);
+		 var scaleY = d3.scale.linear().range([200, 0]).domain([0, 100]);
 	     var axisY = d3.svg.axis().scale(scaleY).orient("left").ticks(10);
-		 barsvg.select('#yAxis')
+		 pathsvg.select('#yAxis')
 	     .attr("transform","translate(30,10)")	
 	     .attr("class", "y axis")
 	     .style("fill", "steelblue")
 	     .call(axisY);
 		 //--------------------------------------------------
 		 //var scaleX = d3.scale.linear().range([0, 200]).domain([0, d3.max(data_array, (d)=>d.val)]);
-		 var scaleX = d3.scale.linear().range([0, 200]).domain([0, 200]);
+		 var scaleX = d3.scale.linear().range([0, 200]).domain([0, 9]);
 	     var axisX = d3.svg.axis().scale(scaleX).orient("bottom").ticks(10);
-		 barsvg.select('#xAxis')
+		 pathsvg.select('#xAxis')
 	     .attr("transform","translate(35,220)")	
 	     .attr("class", "x axis")
 	     .style("fill", "steelblue")
@@ -69,7 +76,35 @@
          .attr("font-size", "8px")
 	     .call(axisX);
 		 //--------------------------------------------------
-		 //產生BAR
+		 
+		 var line = d3.svg.line().x(function(d) {
+           return scaleX(d.x);
+         }).y(function(d) {
+           return scaleY(d.y);
+         });
+		 
+		 var line1 = pathsvg.selectAll("#line1").data(data_array1);
+		 line1.exit().remove(); //remove unneeded rect
+         line1.enter().append("path"); //add new rect
+		 line1.transition().duration(500)
+		 .attr("id", 'line1')
+		 .attr("stroke", 'blue')
+		 .attr("fill", 'none')
+		 .attr("transform", 'translate(35,0)') //offset
+		 .attr("d", line(data_array1));
+		 
+		 var line2 = pathsvg.selectAll("#line2").data(data_array2);
+		 line2.exit().remove(); //remove unneeded rect
+         line2.enter().append("path"); //add new rect
+		 line2.transition().duration(500)
+		 .attr("id", 'line2')
+		 .attr("stroke", 'red')
+		 .attr("fill", 'none')
+		 .attr("transform", 'translate(35,0)') //offset
+		 .attr("d", line(data_array2));
+
+/*		
+		//產生BAR
 		 var bar = barsvg.selectAll("#barVal").data(data_array);
 		 bar.exit().remove(); //remove unneeded rect
          bar.enter().append("rect"); //add new rect
@@ -109,6 +144,7 @@
              this.textContent = i(t);
            }
 		 });
+		 */
        }
      //})
    </script>
