@@ -8,6 +8,8 @@
        var host = location.origin.replace(/^http/, 'ws')
        var ws = new WebSocket(host);
        var barsvg;
+	   let data_array1 = new Array(10).fill(0);
+	   let data_array2 = new Array(10).fill(0);
        function outputmsg(msg){
 	     var li = document.createElement('li');
 	     li.innerHTML = msg;
@@ -16,34 +18,36 @@
        function firstonload(){
 	    //產生按鈕
 	     d3.select("#d3btn").append("button").text("按鈕").on("click",function(){
-	       var host = location.origin.replace(/^http/, 'ws')
-           outputmsg(host)
+	       //var host = location.origin.replace(/^http/, 'ws')
+           //outputmsg(host)
+		   //隨機產生資料
+           data_array1 = data_array1.map(function(v, i){
+		     //i=0,1,2~9
+             return({x:i, y:Math.floor(Math.random()*100+1)});
+           })
+		   data_array2 = data_array2.map(function(v, i){
+		     //i=0,1,2~9
+             return({x:i, y:Math.floor(Math.random()*100+1)});
+           })
 	     })
 		 //
 		 pathsvg = d3.select("body").select('#neochart').append("svg");
 	     //建立軸
 	     pathsvg.append('g').attr("id", 'yAxis');
 	     pathsvg.append('g').attr("id", 'xAxis');
+		 //產生第一筆資料
+		 data_array1 = data_array1.map(function(v, i){
+           return({x:i, y:Math.floor(Math.random()*100+1)});
+         })
+		 data_array2 = data_array2.map(function(v, i){
+           return({x:i, y:Math.floor(Math.random()*100+1)});
+         })
 	   }
       
  	   ws.onmessage = function (event) {
          var ran = Math.random();
          var time = (new Date()).getTime();
 		 //outputmsg("time:" + time);
-         //隨機產生資料
-         //let data_array = new Array(Math.floor(Math.random()*10+1)).fill(0);
-		 let data_array1 = new Array(10).fill(0);
-           //data_array = data_array.map((v, i)=>{
-		   data_array1 = data_array1.map(function(v, i){
-		   //i=0,1,2~9
-           return({x:i, y:Math.floor(Math.random()*100+1)});
-         })
-		 let data_array2 = new Array(10).fill(0);
-           //data_array = data_array.map((v, i)=>{
-		   data_array2 = data_array2.map(function(v, i){
-		   //i=0,1,2~9
-           return({x:i, y:Math.floor(Math.random()*100+1)});
-         })
 		 //設定畫布大小
          const height = 250;
          const width = 300;
@@ -75,14 +79,40 @@
 		 .attr("font-family", "sans-serif")
          .attr("font-size", "8px")
 	     .call(axisX);
+		 //
+		 //var tip = d3.tip().attr('class', 'd3-tip');
+                          
 		 //--------------------------------------------------
-		 
+		 //產生d3 Line函數
 		 var line = d3.svg.line().x(function(d) {
            return scaleX(d.x);
          }).y(function(d) {
            return scaleY(d.y);
          });
 		 
+		 function handleCircleMouseOver(d, i) { 
+		   var host = location.origin.replace(/^http/, 'ws')
+             d3.select(this).attr({
+               fill: "orange",
+               r: 4
+             });
+			 var tooltip = pathsvg.append("text");
+			 tooltip.attr("id", 'tp')
+			 .attr("font-family", "sans-serif")
+             .attr("font-size", "12px")
+		     .attr("x", scaleX(d.x)+30)
+			 .attr("y", scaleY(d.y)-5)
+			 .text(function() {
+
+              return d.x+","+d.y;
+            });
+			 
+		 }
+		 function handleCircleMouseOut(d, i) {
+		   d3.select("#tp").remove(); 
+		 }
+		 
+		 //產生LINE1
 		 var line1 = pathsvg.selectAll("#line1").data(data_array1);
 		 line1.exit().remove(); //remove unneeded rect
          line1.enter().append("path"); //add new rect
@@ -91,8 +121,23 @@
 		 .attr("stroke", 'blue')
 		 .attr("fill", 'none')
 		 .attr("transform", 'translate(35,0)') //offset
-		 .attr("d", line(data_array1));
-		 
+		 .attr("d", line(data_array1)); 
+		 var line1cir = pathsvg.selectAll("#line1cir").data(data_array1);
+		 line1cir.exit().remove(); //remove unneeded rect
+         line1cir.enter().append("circle"); //add new rect
+		 line1cir.transition().duration(500)
+		 .attr("id", 'line1cir')
+		 .attr("stroke", 'black')
+		 .attr("stroke-width", 1)
+		 .attr("fill", 'blue')
+		 .attr('r', 3)
+		 .attr("transform", 'translate(35,0)')
+		 .attr('cx', function(d){return scaleX(d.x);})
+		 .attr('cy', function(d){return scaleY(d.y);});
+		 line1cir.on("mouseover", handleCircleMouseOver);
+		 line1cir.on("mouseout", handleCircleMouseOut);
+	 
+		 //產生LINE2
 		 var line2 = pathsvg.selectAll("#line2").data(data_array2);
 		 line2.exit().remove(); //remove unneeded rect
          line2.enter().append("path"); //add new rect
@@ -102,26 +147,23 @@
 		 .attr("fill", 'none')
 		 .attr("transform", 'translate(35,0)') //offset
 		 .attr("d", line(data_array2));
+		 var line2cir = pathsvg.selectAll("#line2cir").data(data_array2);
+		 line2cir.exit().remove(); //remove unneeded rect
+         line2cir.enter().append("circle"); //add new rect
+		 line2cir.transition().duration(500)
+		 .attr("id", 'line2cir')
+		 .attr("stroke", 'black')
+		 .attr("stroke-width", 1)
+		 .attr("fill", 'red')
+		 .attr('r', 3)
+		 .attr("transform", 'translate(35,0)')
+		 .attr('cx', function(d){return scaleX(d.x);})
+		 .attr('cy', function(d){return scaleY(d.y);})
+		 line2cir.on("mouseover", handleCircleMouseOver);
+		 line2cir.on("mouseout", handleCircleMouseOut);
+		 
 
 /*		
-		//產生BAR
-		 var bar = barsvg.selectAll("#barVal").data(data_array);
-		 bar.exit().remove(); //remove unneeded rect
-         bar.enter().append("rect"); //add new rect
-		 bar.transition().duration(500)
-		 .attr("id", 'barVal')
-         .attr('width', function(d){return d.val;})
-         .attr("height",15)
-         .attr("x", 35)
-         .attr("y", function(d){return 10+d.index*20;})
-         //.attr("fill", "#f90");
-		 .attr("fill", (d)=>{
-		   if(d.val<60){
-		     return 'red'
-		   } else {
-			 return 'green'
-		   }
-		 });
 		 //--------------------------------------------------
 		 //產生BAR TEXT
 		 var bartext = barsvg.selectAll('#barText').data(data_array);
