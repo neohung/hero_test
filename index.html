@@ -3,19 +3,24 @@
    <meta charset="UTF-8" />
    <title>標題</title>
    <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
    <script>
-    // $(document).ready(function() {
-      //$(function () {
-	   function outputmsg(msg){
+   	   function outputmsg(msg){
 	     var li = document.createElement('li');
 	     li.innerHTML = msg;
 	     document.querySelector('#message').appendChild(li);		
        }
-	   //產生按鈕
-	   d3.select("#d3btn").append("button").text("按鈕").on("click",function(){
-	     var host = location.origin.replace(/^http/, 'ws')
-         outputmsg(host)
-	   })
+
+       function testonload(){
+	    //產生按鈕
+	     d3.select("#d3btn").append("button").text("按鈕").on("click",function(){
+	       var host = location.origin.replace(/^http/, 'ws')
+           outputmsg(host)
+	     })
+	   }
+    // $(document).ready(function() {
+      //$(function () {
+	  
 	   /*
        function outputmsg(msg){
          d3.select('#message').append('ul').text(msg)
@@ -120,7 +125,7 @@
    </script>
 
   </head>
-  <body>
+  <body onload="testonload()">
     DATA
     <div id="neochart" style="width: 750px; height: 400px; margin: 0 auto"></div>
 	<div id='d3btn'></div>
