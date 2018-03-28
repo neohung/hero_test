@@ -5,41 +5,31 @@
    <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
    <script>
-   	   function outputmsg(msg){
+       var host = location.origin.replace(/^http/, 'ws')
+       var ws = new WebSocket(host);
+       var barsvg;
+       function outputmsg(msg){
 	     var li = document.createElement('li');
 	     li.innerHTML = msg;
 	     document.querySelector('#message').appendChild(li);		
        }
-
-       function testonload(){
+       function firstonload(){
 	    //產生按鈕
 	     d3.select("#d3btn").append("button").text("按鈕").on("click",function(){
 	       var host = location.origin.replace(/^http/, 'ws')
            outputmsg(host)
 	     })
+		 //
+		 barsvg = d3.select("body").append("svg");
+	     //建立軸
+	     barsvg.append('g').attr("id", 'yAxis');
+	     barsvg.append('g').attr("id", 'xAxis');
 	   }
-    // $(document).ready(function() {
-      //$(function () {
-	  
-	   /*
-       function outputmsg(msg){
-         d3.select('#message').append('ul').text(msg)
-       }
-	   */
-       var host = location.origin.replace(/^http/, 'ws')
-       var ws = new WebSocket(host);
-	   /*
-	   var barsvg = d3.select("body").append("svg");
-	   //建立軸
-	   barsvg.append('g').attr("id", 'yAxis');
-	   barsvg.append('g').attr("id", 'xAxis');
-	   
-	   */
-       ws.onmessage = function (event) {
+      
+ 	   ws.onmessage = function (event) {
          var ran = Math.random();
          var time = (new Date()).getTime();
-		 outputmsg("time:" + time);
-		 /*
+		 //outputmsg("time:" + time);
          //隨機產生資料
          let data_array = new Array(Math.floor(Math.random()*10+1)).fill(0);
            //data_array = data_array.map((v, i)=>{
@@ -119,13 +109,12 @@
              this.textContent = i(t);
            }
 		 });
-		 */
        }
      //})
    </script>
 
   </head>
-  <body onload="testonload()">
+  <body onload="firstonload()">
     DATA
     <div id="neochart" style="width: 750px; height: 400px; margin: 0 auto"></div>
 	<div id='d3btn'></div>
