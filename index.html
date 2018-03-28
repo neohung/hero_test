@@ -20,7 +20,7 @@
            outputmsg(host)
 	     })
 		 //
-		 barsvg = d3.select("body").append("svg");
+		 barsvg = d3.select("body").select('#neochart').append("svg");
 	     //建立軸
 	     barsvg.append('g').attr("id", 'yAxis');
 	     barsvg.append('g').attr("id", 'xAxis');
@@ -116,7 +116,8 @@
   </head>
   <body onload="firstonload()">
     DATA
-    <div id="neochart" style="width: 750px; height: 400px; margin: 0 auto"></div>
+    <div id="neochart"></div>
+	<br>
 	<div id='d3btn'></div>
 	<h1>Messages</h1>
     <ul id='message'></ul>
