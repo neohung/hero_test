@@ -8,8 +8,8 @@
        var host = location.origin.replace(/^http/, 'ws')
        var ws = new WebSocket(host);
        var barsvg;
-	   let data_array1 = new Array(10).fill(0);
-	   let data_array2 = new Array(10).fill(0);
+	   let data_array1 = new Array(100).fill(0);
+	   let data_array2 = new Array(100).fill(0);
        function outputmsg(msg){
 	     var li = document.createElement('li');
 	     li.innerHTML = msg;
@@ -34,7 +34,9 @@
 		 pathsvg = d3.select("body").select('#neochart').append("svg");
 	     //建立軸
 	     pathsvg.append('g').attr("id", 'yAxis');
+		 pathsvg.append('g').attr("id", 'yAxisGrid');
 	     pathsvg.append('g').attr("id", 'xAxis');
+		 pathsvg.append('g').attr("id", 'xAxisGrid');
 		 //產生第一筆資料
 		 data_array1 = data_array1.map(function(v, i){
            return({x:i, y:Math.floor(Math.random()*100+1)});
@@ -50,7 +52,7 @@
 		 //outputmsg("time:" + time);
 		 //設定畫布大小
          const height = 250;
-         const width = 300;
+         const width = 800;
          pathsvg.attr(
            'width', width,
           ).attr(
@@ -58,30 +60,51 @@
           ).style(
            'border','2px solid black'
          );
+		 var margin = { top: 40, right: 20, bottom: 20, left: 40 };
+		 var padding = { top: 50, right: 50, bottom: 50, left: 50 };
 		 //--------------------------------------------------
 		 //domain和 range，對應就是 值域=>對應域, domain表示軸值為0~20, range表示由上到下長度有200格,
 		 //var scaleY = d3.scale.linear().range([200, 0]).domain([0, d3.max(data_array, (d)=>d.val)]);
-		 var scaleY = d3.scale.linear().range([200, 0]).domain([0, 100]);
-	     var axisY = d3.svg.axis().scale(scaleY).orient("left").ticks(10);
+        var scaleY = d3.scale.linear()
+             .domain([0,d3.max(data_array1, function (d) { return d.y; })])
+             .range([height - margin.top-margin.bottom,0]);  // Set margins for x specific
+		
+		var axisY = d3.svg.axis().scale(scaleY).orient("left").ticks(10).tickFormat(function(d){return d+'%';});
 		 pathsvg.select('#yAxis')
-	     .attr("transform","translate(30,10)")	
+	     .attr("transform",'translate(' + margin.left + ',' + margin.top + ')')	
 	     .attr("class", "y axis")
 	     .style("fill", "steelblue")
+		 .attr("font-family", "sans-serif")
+         .attr("font-size", "8px")
 	     .call(axisY);
 		 //--------------------------------------------------
-		 //var scaleX = d3.scale.linear().range([0, 200]).domain([0, d3.max(data_array, (d)=>d.val)]);
-		 var scaleX = d3.scale.linear().range([0, 200]).domain([0, 9]);
-	     var axisX = d3.svg.axis().scale(scaleX).orient("bottom").ticks(10);
+		 var scaleX = d3.scale.linear()
+             .domain([0, d3.max(data_array1, function (d) { return d.x + 10; })])
+             .range([0, width - margin.right-margin.left]);  // Set margins for x specific
+
+		 var axisX = d3.svg.axis().scale(scaleX).orient("bottom").tickFormat(function(d){return d+'次';});
 		 pathsvg.select('#xAxis')
-	     .attr("transform","translate(35,220)")	
+	     .attr("transform",'translate(' + margin.left  + ',' + (height - margin.bottom) + ')')	
 	     .attr("class", "x axis")
 	     .style("fill", "steelblue")
 		 .attr("font-family", "sans-serif")
          .attr("font-size", "8px")
 	     .call(axisX);
-		 //
-		 //var tip = d3.tip().attr('class', 'd3-tip');
-                          
+		 
+		 //Grid
+		 var axisXGrid = d3.svg.axis().scale(scaleX).orient("bottom").ticks(10).tickFormat("").tickSize(-height+margin.bottom+margin.top,0);
+		 pathsvg.select('#xAxisGrid')
+		 .attr("transform",'translate(' + margin.left  + ',' + (height - margin.bottom) + ')')	
+	     .style("fill", "none")
+		 .attr("stroke", "rgba(0,0,0,.2)")
+	     .call(axisXGrid);
+		 var axisYGrid = d3.svg.axis().scale(scaleY).orient("left").ticks(10).tickFormat("").tickSize(-width+margin.left+margin.right,0);
+		 pathsvg.select('#yAxisGrid')
+		 .attr("transform",'translate(' + margin.left  + ',' + (margin.top) + ')')	
+	     .style("fill", "none")
+		 .attr("stroke", "rgba(0,0,0,.2)")
+	     .call(axisYGrid);
+		 
 		 //--------------------------------------------------
 		 //產生d3 Line函數
 		 var line = d3.svg.line().x(function(d) {
@@ -100,10 +123,9 @@
 			 tooltip.attr("id", 'tp')
 			 .attr("font-family", "sans-serif")
              .attr("font-size", "12px")
-		     .attr("x", scaleX(d.x)+30)
-			 .attr("y", scaleY(d.y)-5)
+		     .attr("x", scaleX(d.x)+margin.left-15)
+			 .attr("y", scaleY(d.y)+margin.top-5)
 			 .text(function() {
-
               return d.x+","+d.y;
             });
 			 
@@ -116,22 +138,23 @@
 		 var line1 = pathsvg.selectAll("#line1").data(data_array1);
 		 line1.exit().remove(); //remove unneeded rect
          line1.enter().append("path"); //add new rect
-		 line1.transition().duration(500)
+		 line1.transition().duration(0)
 		 .attr("id", 'line1')
 		 .attr("stroke", 'blue')
 		 .attr("fill", 'none')
-		 .attr("transform", 'translate(35,0)') //offset
+		 //.attr("transform", 'translate(0,0)') //offset
+		 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 		 .attr("d", line(data_array1)); 
 		 var line1cir = pathsvg.selectAll("#line1cir").data(data_array1);
 		 line1cir.exit().remove(); //remove unneeded rect
          line1cir.enter().append("circle"); //add new rect
-		 line1cir.transition().duration(500)
+		 line1cir.transition().duration(0)
 		 .attr("id", 'line1cir')
 		 .attr("stroke", 'black')
 		 .attr("stroke-width", 1)
 		 .attr("fill", 'blue')
 		 .attr('r', 3)
-		 .attr("transform", 'translate(35,0)')
+		 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 		 .attr('cx', function(d){return scaleX(d.x);})
 		 .attr('cy', function(d){return scaleY(d.y);});
 		 line1cir.on("mouseover", handleCircleMouseOver);
@@ -141,54 +164,28 @@
 		 var line2 = pathsvg.selectAll("#line2").data(data_array2);
 		 line2.exit().remove(); //remove unneeded rect
          line2.enter().append("path"); //add new rect
-		 line2.transition().duration(500)
+		 line2.transition().duration(0)
 		 .attr("id", 'line2')
 		 .attr("stroke", 'red')
 		 .attr("fill", 'none')
-		 .attr("transform", 'translate(35,0)') //offset
+		 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 		 .attr("d", line(data_array2));
 		 var line2cir = pathsvg.selectAll("#line2cir").data(data_array2);
 		 line2cir.exit().remove(); //remove unneeded rect
          line2cir.enter().append("circle"); //add new rect
-		 line2cir.transition().duration(500)
+		 line2cir.transition().duration(0)
 		 .attr("id", 'line2cir')
 		 .attr("stroke", 'black')
 		 .attr("stroke-width", 1)
 		 .attr("fill", 'red')
 		 .attr('r', 3)
-		 .attr("transform", 'translate(35,0)')
+		 //.attr("transform", 'translate(0,0)')
+		 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 		 .attr('cx', function(d){return scaleX(d.x);})
 		 .attr('cy', function(d){return scaleY(d.y);})
 		 line2cir.on("mouseover", handleCircleMouseOver);
-		 line2cir.on("mouseout", handleCircleMouseOut);
-		 
-
-/*		
-		 //--------------------------------------------------
-		 //產生BAR TEXT
-		 var bartext = barsvg.selectAll('#barText').data(data_array);
-		 bartext.exit().remove(); //remove unneeded rect
-		 bartext.enter().append("text");
-		 bartext.transition().duration(500)
-		 .attr("id", 'barText')
-         .attr("x", function(d){return d.val+35;})
-         .attr("y", function(d){return 25+d.index*20;})
-		 .attr("fill","blue")
-         .attr("font-family", "sans-serif")
-         .attr("font-size", "20px")
-         .text(function(d){return d.val;}) 
-		 .attr("class", "valText")
-		 //tween表示補間動畫
-		 .tween("valText", function(d){
-		   let i = d3.interpolateRound(0, d.val);
-           return (t)=>{
-             //this.setAttribute("x",i(t)+10);
-             this.textContent = i(t);
-           }
-		 });
-		 */
+		 line2cir.on("mouseout", handleCircleMouseOut);	
        }
-     //})
    </script>
 
   </head>
