@@ -4,12 +4,13 @@
    <title>標題</title>
    <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+   <script type="text/javascript" src="./sma.js"></script>
    <script>
        var host = location.origin.replace(/^http/, 'ws')
        var ws = new WebSocket(host);
        var barsvg;
-	   let data_array1 = new Array(100).fill(0);
-	   let data_array2 = new Array(100).fill(0);
+	   let data_array1 = new Array(1).fill(0);
+	   let data_array2 = new Array(1).fill(0);
        function outputmsg(msg){
 	     var li = document.createElement('li');
 	     li.innerHTML = msg;
@@ -23,12 +24,23 @@
 		   //隨機產生資料
            data_array1 = data_array1.map(function(v, i){
 		     //i=0,1,2~9
-             return({x:i, y:Math.floor(Math.random()*100+1)});
+             return({x:Date.now(), y:Math.floor(Math.random()*100+1)});
            })
 		   data_array2 = data_array2.map(function(v, i){
 		     //i=0,1,2~9
-             return({x:i, y:Math.floor(Math.random()*100+1)});
+             return({x:Date.now(), y:Math.floor(Math.random()*100+1)});
            })
+		   //
+		   var parseDate = d3.time.format("%d-%b-%y").parse;
+		   d3.csv("data.csv", function(error, data) {
+             data.forEach(function(d) {
+               d.date = parseDate(d.date);
+               d.close = +d.close;
+             });
+			 data.forEach(function(d) {
+			   outputmsg(d.date.getTime())
+			 });
+		   })
 	     })
 		 //
 		 pathsvg = d3.select("body").select('#neochart').append("svg");
@@ -39,17 +51,23 @@
 		 pathsvg.append('g').attr("id", 'xAxisGrid');
 		 //產生第一筆資料
 		 data_array1 = data_array1.map(function(v, i){
-           return({x:i, y:Math.floor(Math.random()*100+1)});
+           return({x:Date.now(), y:Math.floor(Math.random()*100+1)});
          })
 		 data_array2 = data_array2.map(function(v, i){
-           return({x:i, y:Math.floor(Math.random()*100+1)});
+           return({x:Date.now(), y:Math.floor(Math.random()*100+1)});
          })
 	   }
       
  	   ws.onmessage = function (event) {
+	     var object = JSON.parse(event.data);
          var ran = Math.random();
          var time = (new Date()).getTime();
-		 //outputmsg("time:" + time);
+		 data_array1.shift();
+		 //ran = Math.floor(Math.random()*100+1);
+		 var dd = {x:object.x,y:object.y};
+		 data_array1.push(dd);
+		 
+		 outputmsg("time:" + time+", "+object.y);
 		 //設定畫布大小
          const height = 250;
          const width = 800;
@@ -79,7 +97,7 @@
 	     .call(axisY);
 		 //--------------------------------------------------
 		 var scaleX = d3.scale.linear()
-             .domain([0, d3.max(data_array1, function (d) { return d.x + 10; })])
+             .domain([d3.min(data_array1, function (d) { return d.x - 10; }), d3.max(data_array1, function (d) { return d.x + 10; })])
              .range([0, width - margin.right-margin.left]);  // Set margins for x specific
 
 		 var axisX = d3.svg.axis().scale(scaleX).orient("bottom").tickFormat(function(d){return d+'次';});
@@ -107,7 +125,8 @@
 		 
 		 //--------------------------------------------------
 		 //產生d3 Line函數
-		 var line = d3.svg.line().x(function(d) {
+		 //interpolate :linear , cardinal 
+		 var line = d3.svg.line().interpolate("linear").x(function(d) {
            return scaleX(d.x);
          }).y(function(d) {
            return scaleY(d.y);
@@ -141,6 +160,7 @@
 		 line1.transition().duration(0)
 		 .attr("id", 'line1')
 		 .attr("stroke", 'blue')
+		 .attr("stroke-width", 0.1)
 		 .attr("fill", 'none')
 		 //.attr("transform", 'translate(0,0)') //offset
 		 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
@@ -159,33 +179,46 @@
 		 .attr('cy', function(d){return scaleY(d.y);});
 		 line1cir.on("mouseover", handleCircleMouseOver);
 		 line1cir.on("mouseout", handleCircleMouseOut);
-	 
-		 //產生LINE2
-		 var line2 = pathsvg.selectAll("#line2").data(data_array2);
-		 line2.exit().remove(); //remove unneeded rect
-         line2.enter().append("path"); //add new rect
-		 line2.transition().duration(0)
-		 .attr("id", 'line2')
+		 //
+		 var sma1 = calSimpleMovingAverage(data_array1,3);
+		 //outputmsg("sma:"+sma[0].y);
+		 //產生SMA1
+		 var smaline1 = pathsvg.selectAll("#smaline1").data(sma1);
+		 smaline1.exit().remove(); //remove unneeded rect
+         smaline1.enter().append("path"); //add new rect
+		 smaline1.transition().duration(0)
+		 .attr("id", 'smaline1')
 		 .attr("stroke", 'red')
 		 .attr("fill", 'none')
 		 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-		 .attr("d", line(data_array2));
-		 var line2cir = pathsvg.selectAll("#line2cir").data(data_array2);
-		 line2cir.exit().remove(); //remove unneeded rect
-         line2cir.enter().append("circle"); //add new rect
-		 line2cir.transition().duration(0)
-		 .attr("id", 'line2cir')
+		 .attr("d", line(sma1));
+		 
+		 var sma2 = calSimpleMovingAverage(data_array1,10);
+		 //產生SMA2
+		 var smaline2 = pathsvg.selectAll("#smaline2").data(sma2);
+		 smaline2.exit().remove(); //remove unneeded rect
+         smaline2.enter().append("path"); //add new rect
+		 smaline2.transition().duration(0)
+		 .attr("id", 'smaline2')
 		 .attr("stroke", 'black')
-		 .attr("stroke-width", 1)
-		 .attr("fill", 'red')
-		 .attr('r', 3)
-		 //.attr("transform", 'translate(0,0)')
+		 .attr("fill", 'none')
 		 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-		 .attr('cx', function(d){return scaleX(d.x);})
-		 .attr('cy', function(d){return scaleY(d.y);})
-		 line2cir.on("mouseover", handleCircleMouseOver);
-		 line2cir.on("mouseout", handleCircleMouseOut);	
+		 .attr("d", line(sma2));
+		 
+		 var sma3 = calSimpleMovingAverage(data_array1,20);
+		 //產生SMA2
+		 var smaline3 = pathsvg.selectAll("#smaline3").data(sma3);
+		 smaline3.exit().remove(); //remove unneeded rect
+         smaline3.enter().append("path"); //add new rect
+		 smaline3.transition().duration(0)
+		 .attr("id", 'smaline3')
+		 .attr("stroke", 'green')
+		 .attr("fill", 'none')
+		 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+		 .attr("d", line(sma3));
+		 
        }
+	   //
    </script>
 
   </head>

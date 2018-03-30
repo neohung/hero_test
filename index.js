@@ -17,14 +17,14 @@ console.log("websocket server created")
 wss.on("connection", function(ws) {
   console.log("websocket connection open, create timer")
   var id = setInterval(function() {
-	console.log("websocket interval")
 	var msg = {
       type: "message",
-      x: Math.round((Math.random()*100))/100,
-      y: Math.round((Math.random()*100))/100,
+      x: Date.now(),
+      y: Math.floor(Math.random()*100+1),
       id: nonce(),
       date: Date.now()
     };
+	//console.log(msg.date)
     ws.send(JSON.stringify(msg))
   }, 1000)
 
