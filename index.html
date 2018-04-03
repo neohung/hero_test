@@ -62,12 +62,15 @@
 	     var object = JSON.parse(event.data);
          var ran = Math.random();
          var time = (new Date()).getTime();
-		 data_array1.shift();
+		 //超過100去掉太舊的資料
+		 if (data_array1.length > 100){
+		  data_array1.shift();
+		 }
 		 //ran = Math.floor(Math.random()*100+1);
 		 var dd = {x:object.x,y:object.y};
 		 data_array1.push(dd);
 		 
-		 outputmsg("time:" + time+", "+object.y);
+		 //outputmsg("time:" + time+", "+object.y);
 		 //設定畫布大小
          const height = 250;
          const width = 800;
@@ -99,8 +102,10 @@
 		 var scaleX = d3.scale.linear()
              .domain([d3.min(data_array1, function (d) { return d.x - 10; }), d3.max(data_array1, function (d) { return d.x + 10; })])
              .range([0, width - margin.right-margin.left]);  // Set margins for x specific
-
-		 var axisX = d3.svg.axis().scale(scaleX).orient("bottom").tickFormat(function(d){return d+'次';});
+         var _X = d3.time.format("%X");
+		 var axisX = d3.svg.axis().scale(scaleX).orient("bottom").tickFormat(function(d){return _X(new Date(d));});
+		 //.tickFormat(d3.timeFormat("%Y-%m-%d"));
+		 //.tickFormat(function(d){return d+'次';});
 		 pathsvg.select('#xAxis')
 	     .attr("transform",'translate(' + margin.left  + ',' + (height - margin.bottom) + ')')	
 	     .attr("class", "x axis")
