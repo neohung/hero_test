@@ -40,10 +40,15 @@ wss.on("connection", function(ws) {
     //    callback(greeting, name)
     //}
 	
-	n.returnOrderBook("USDT","BTC", function(err,result){
-		this.seq = result['seq'];
-		this.bids = result['bids']; //50 unit
-		this.asks = result['asks'];
+	n.returnTradeHistory("USDT","BTC", function(err,result){
+		this.date = result[0]['date'];
+		this.type = result[0]['type'];  //sell/buy
+		this.rate = result[0]['rate'];
+		this.amount = result[0]['amount'];
+		this.total = result[0]['total'];
+		//this.bids = result['bids']; //50 unit
+		//this.asks = result['asks'];
+		/*
 		this.msg = {
           type: "message",
           x: Date.now(),
@@ -51,11 +56,13 @@ wss.on("connection", function(ws) {
           id: nonce(),
           date: Date.now()
         };
+		*/
 		//console.log(this.bids[0][0])
+		console.log(new Date(this.date))
 	}.bind(this));
 	if (typeof(this.msg) != "undefined"){
 		//console.log(this.msg.y)
-		ws.send(JSON.stringify(this.msg))
+		//ws.send(JSON.stringify(this.msg))
 	}
       //console.log("2:"+this.seq)
 	

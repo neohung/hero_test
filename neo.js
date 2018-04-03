@@ -114,6 +114,21 @@ module.exports = (function(){
     returnLoanOrders: function(currency, callback) {
       return this._public('returnLoanOrders', {currency: currency}, callback);
     },
+	returnTradeHistory: function(currencyA,currencyB,callback){
+		var currencyPair;
+      	if (typeof currencyB === 'function') {
+        	currencyPair = currencyA;
+        	callback = currencyB;
+        	currencyB = null;
+      	}
+      else {
+        currencyPair = joinCurrencies(currencyA, currencyB);
+      }
+      var parameters = {
+        currencyPair: currencyPair
+      };
+      return this._public('returnTradeHistory', parameters, callback);
+	},
     returnOrderBook: function(currencyA, currencyB, callback) {
     	var currencyPair;
       	if (typeof currencyB === 'function') {
